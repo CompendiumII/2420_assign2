@@ -1,0 +1,16 @@
+[Unit]
+Description=caddy.service to serve HTML
+After=network.target
+
+[Service]
+Type=notify
+User=kevin1
+Group=kevin1
+ExecStart=/usr/bin/caddy run --config /etc/caddy/Caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+KillMode-mixed
+
+[Install]
+WantedBy=multi-user.target
