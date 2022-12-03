@@ -1,0 +1,11 @@
+[Unit]
+Description=Service file to restart node
+After=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/home/kevin1/.volta/bin/node /home/kevin/2420-assign-two/src/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
