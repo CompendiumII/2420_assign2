@@ -52,8 +52,8 @@ It's that simple!
 
 We will now initialize a few directories and install some things.
 
-On our WSL, as well as our droplets, we will be creating a few directories.
-We will repeat these commands in WSL as well as both droplets:
+We will be creating directories in WSL as well as **BOTH DROPLETS**!
+We will repeat these commands for all 3:
 
 ```
 mkdir 2420-assign-two
@@ -70,6 +70,9 @@ curl https://get.volta.sh | bash
 source ~/.bashrc
 volta install node
 ```
+Ensure node is installed.
+
+![node_working](https://user-images.githubusercontent.com/46077062/205430790-06e21a6f-c7c6-4bde-98b5-1d1e1518a65e.png)
 
 And now that we have node installed, we're going to start a node project in the src directory we created:
 
@@ -80,7 +83,11 @@ npm init
 npm i fastify
 ```
 
-In our WSL, we will be creating an index.html as well as an index.js.
+Ensure volta is installed.
+
+![volta](https://user-images.githubusercontent.com/46077062/205430798-64d1df4b-6556-4eb5-82a5-0b72fb36be7a.png)
+
+## index.html and index.js Creation
 
 The index.html belongs in the html directory and will look like:
 
@@ -128,5 +135,150 @@ Perfect, we will move these to the droplets later!
 
 ## Creating Caddyfile and Caddy Service File
 
+We will create a Caddyfile in the 2420-assign-two directory of our WSL.
+
+The Caddyfile will look like the following:
+
+```
+http://24.199.71.43 {
+	root * /var/www
+	reverse_proxy /api locahost:5050
+	file_server
+}
+```
+
+Additionally, we will create a caddy.service file that looks like the following:
+
+```
+[Unit]
+Description=caddy.service to serve HTML
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/caddy run --config /etc/caddy/Caddyfile
+ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile
+TimeoutStopSec=5s
+LimitNOFILE=1048576
+KillMode-mixed
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Done!
+
+## Creating the hello_web Service File
+
+We will create one more service file to ensure that our service restarts if it ever fails. This service file will execute node and index.js.
+
+The service file looks like the following:
+
+```
+[Unit]
+Description=Service file to restart node
+After=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/home/kevin1/.volta/bin/node /home/kevin/2420-assign-two/src/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Great! Now we have all the required files to run our web app.
+
+## Moving Files
+
+The last step before we are able to test our web app is to move over all the files to the droplets.
+We also need to ensure that the files are in the correct places so that we can run them.
+
+On WSL, we will be utilizing SFTP to move our files over. We will be doing this on **BOTH DROPLETS**!
+
+We can utilize the following to connect to our droplet:
+
+```
+sftp -i ~/.ssh/DO2_key kevin1@ip
+```
+
+And then we can put all of our files:
+
+```
+put Caddyfile
+put caddy.service
+put hello_web.service
+```
+
+To access the index files, we need to move into the directories before using SFTP:
+
+```
+## This is for the index.html file
+cd 2420-assign-two
+cd html
+sftp -i ~/.ssh/DO2_key kevin1@ip
+cd 2420-assign-two
+cd html
+put index.html
+exit
+## This is for the index.js file
+cd ..
+cd src
+sftp -i ~/.ssh/DO2_key kevin1@ip
+cd 2420-assign-two
+cd src
+put index.js
+exit
+```
+
+And now that we have all of our files on our droplets, we need to ensure they are in the right place.
+
+Let's start by moving our Caddyfile.
+Move to where we put the Caddyfile, and we will use the following:
+
+```
+sudo cp Caddyfile /etc/caddy/
+```
+
+Next is the service files. We will be using the following:
+
+```
+sudo cp caddy.service /etc/systemd/system/
+sudo cp hello_web.service /etc/systemd/system/
+```
+
+And finally we will be moving out HTML file from 2420-assign-two/html/:
+
+```
+sudo cp index.html /var/www/
+```
+
+Nice! We're done all the tedious work now...
+
+## Enabling Services and Curl Testing
+
+All we have to do now is to enable our services. Make sure we enable them on **BOTH DROPLETS**!
+We can do this by using the following:
+
+```
+systemctl enable caddy.service
+systemctl enable hello_web.service
+systemctl start caddy.service
+systemctl start hello_web.service
+## Note that when we start hello_web.service, it will run endlessly, so we can ctrl + c out of this
+```
+
+And to test that the web app works, we can curl our ip:
+
+```
+curl 24.199.71.43
+```
+
+When we refresh, we should be able to see both droplets.
+
+![curl](https://user-images.githubusercontent.com/46077062/205430766-d57e0c05-cb9e-4c3e-ba47-7cde0f98fd94.png)
+
+That's all!
 
 
