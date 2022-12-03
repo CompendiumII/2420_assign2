@@ -279,6 +279,12 @@ When we refresh, we should be able to see both droplets.
 
 ![curl](https://user-images.githubusercontent.com/46077062/205430766-d57e0c05-cb9e-4c3e-ba47-7cde0f98fd94.png)
 
+Additionally, using the /api route we should be able to see { hello: "server X" }:
+
+```
+curl 24.199.71.43/api
+```
+
 That's all!
 
 
