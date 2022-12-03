@@ -4,8 +4,6 @@ After=network.target
 
 [Service]
 Type=notify
-User=kevin1
-Group=kevin1
 ExecStart=/usr/bin/caddy run --config /etc/caddy/Caddyfile
 ExecReload=/usr/bin/caddy reload --config /etc/caddy/Caddyfile
 TimeoutStopSec=5s
